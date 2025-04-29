@@ -1,29 +1,87 @@
 // assets/js/admin_sidebar.js
 
-// Check if the necessary elements exist before adding listeners
-const toggleButton = document.getElementById('admin-sidebar-toggle-btn');
-const sidebar = document.getElementById('admin-sidebar');
-
-function toggleAdminSidebar() {
-    if (sidebar && toggleButton) {
-        sidebar.classList.toggle('close');
-        toggleButton.classList.toggle('rotate');
-        // If you need submenus, uncomment the closeAllSubMenus call
-        // closeAllSubMenus(); 
+document.addEventListener('DOMContentLoaded', () => {
+    const currencyBtn = document.getElementById('currencyBtn');
+    if (currencyBtn) {
+        currencyBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/admin/currency/modal');
+                const modalHTML = await response.text();
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+                const modal = document.getElementById('currencyModal');
+                if (modal) {
+                    modal.style.display = 'block';
+                    modal.querySelector('.close').addEventListener('click', () => {
+                        modal.style.display = 'none';
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching currency modal:', error);
+            }
+        });
     }
-}
+    const toggleButton = document.getElementById('admin-sidebar-toggle-btn');
+    const sidebar = document.getElementById('admin-sidebar');
+
+    function toggleAdminSidebar(e) {
+        e.preventDefault();
+        if (sidebar && toggleButton) {
+            sidebar.classList.toggle('close');
+            toggleButton.classList.toggle('rotate');
+        }
+    }
+
+    if (toggleButton) {
+        toggleButton.addEventListener('click', toggleAdminSidebar);
+    }
+
+    // Store sidebar state in localStorage
+    if (sidebar) {
+        const sidebarState = localStorage.getItem('sidebarState');
+        if (sidebarState === 'closed') {
+            sidebar.classList.add('close');
+            toggleButton?.classList.add('rotate');
+        }
+
+        // Update localStorage when sidebar state changes
+        const observer = new MutationObserver(() => {
+            localStorage.setItem('sidebarState', 
+                sidebar.classList.contains('close') ? 'closed' : 'open'
+            );
+        });
+
+        observer.observe(sidebar, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+    }
+});
 
 // If you have submenus, you'll need these functions adapted
 // function toggleSubMenu(button){ ... }
 // function closeAllSubMenus(){ ... }
 
-// Add event listener only if the button exists
-if (toggleButton) {
-    toggleButton.addEventListener('click', toggleAdminSidebar);
-}
-
 // Initial state check (optional): ensure sidebar starts closed if desired
 document.addEventListener('DOMContentLoaded', () => {
+    const currencyBtn = document.getElementById('currencyBtn');
+    if (currencyBtn) {
+        currencyBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/admin/currency/modal');
+                const modalHTML = await response.text();
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+                const modal = document.getElementById('currencyModal');
+                if (modal) {
+                    modal.style.display = 'block';
+                    modal.querySelector('.close').addEventListener('click', () => {
+                        modal.style.display = 'none';
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching currency modal:', error);
+            }
+        });
+    }
     if (sidebar && !sidebar.classList.contains('close')) {
         // Or uncomment below if you want it open by default
         // sidebar.classList.add('close'); 
@@ -34,7 +92,26 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- Animated Logout Button --- //
-document.addEventListener('DOMContentLoaded', () => { // Ensure DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    const currencyBtn = document.getElementById('currencyBtn');
+    if (currencyBtn) {
+        currencyBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/admin/currency/modal');
+                const modalHTML = await response.text();
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+                const modal = document.getElementById('currencyModal');
+                if (modal) {
+                    modal.style.display = 'block';
+                    modal.querySelector('.close').addEventListener('click', () => {
+                        modal.style.display = 'none';
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching currency modal:', error);
+            }
+        });
+    } // Ensure DOM is loaded
 
     const logoutButtonStates = {
         'default': {
@@ -189,4 +266,4 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure DOM is loaded
             }, logoutButtonStates['walking1']['--figure-duration']);
         });
     });
-}); 
+});

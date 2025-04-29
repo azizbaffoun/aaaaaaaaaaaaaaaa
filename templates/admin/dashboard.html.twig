@@ -3,21 +3,506 @@
 {% block admin_title %}Admin Dashboard{% endblock %}
 
 {% block admin_stylesheets %}
-    {# Add specific dashboard styles if needed #}
+    {{ parent() }}
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <style>
-        .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-        .example-wrapper code { background: #F5F5F5; padding: 2px 6px; color: #333 }
+        /* Professional Currency Modal Styles */
+        .currency-modal-pro {
+            max-width: 420px;
+            width: 100%;
+            padding: 0;
+        }
+        .currency-modal-pro .custom-modal-body {
+            padding: 28px 28px 20px 28px;
+            background: #fff;
+        }
+        .currency-modal-pro .form-group {
+            margin-bottom: 18px;
+        }
+        .currency-modal-pro label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: block;
+            color: #224abe;
+        }
+        .currency-modal-pro .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 5px;
+            border: 1px solid #d1d5db;
+            font-size: 1rem;
+            margin-bottom: 0;
+        }
+        .currency-modal-pro .checkbox-list {
+            max-height: 140px;
+            overflow-y: auto;
+            border: 1px solid #e3e6f0;
+            border-radius: 5px;
+            padding: 8px 12px;
+            background: #f8f9fc;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+        }
+        .currency-modal-pro .checkbox-list label {
+            font-weight: 400;
+            color: #444;
+            margin-bottom: 0;
+            margin-right: 10px;
+        }
+        .currency-modal-pro .btn-primary {
+            background: #4e73df;
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            padding: 10px 0;
+            border-radius: 5px;
+            font-size: 1.08rem;
+            margin-top: 10px;
+        }
+        .currency-modal-pro .btn-primary:hover {
+            background: #224abe;
+        }
+        .currency-modal-pro #conversionResults {
+            margin-top: 15px;
+            font-size: 1.05rem;
+        }
+        .currency-modal-pro .mt-3 { margin-top: 1rem; }
+        /* Responsive */
+        @media (max-width: 520px) {
+            .currency-modal-pro { max-width: 98vw; }
+        }
+
+        /* Currency Modal Styles */
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1050;
+        }
+        .custom-modal-overlay.active {
+            display: flex;
+        }
+        .custom-modal-container {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            min-width: 320px;
+            max-width: 90vw;
+            min-height: 120px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .custom-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            font-weight: bold;
+        }
+        .custom-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #888;
+            cursor: pointer;
+        }
+        .custom-modal-body {
+            padding: 24px;
+        }
+        .admin-content-wrapper {
+            padding: 20px;
+            min-height: 100vh;
+            width: calc(100% - 240px); /* Adjust based on sidebar width */
+            margin-left: 240px; /* Match sidebar width */
+            transition: filter 0.3s, backdrop-filter 0.3s;
+        }
+        
+
+        .container-fluid {
+            height: 100%;
+            padding: 20px;
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, minmax(250px, 300px));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            margin: 0;
+            color: #4e73df;
+            font-size: 4rem;
+            font-weight: 600;
+        }
+
+        .stat-card p {
+            margin: 15px 0 0;
+            color: #858796;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #calendar {
+            height: calc(100vh - 650px);
+            min-height: 600px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+
+        .fc {
+            height: 100% !important;
+        }
+
+        .fc .fc-toolbar {
+            padding: 20px;
+        }
+
+        .fc .fc-toolbar-title {
+            font-size: 1.8rem;
+        }
+
+        .fc .fc-button {
+            padding: 10px 20px;
+            font-size: 1rem;
+        }
     </style>
 {% endblock %}
 
-{% block admin_content %}
-    {# Removed sidebar HTML - it's now in base_admin.html.twig #}
+{% block admin_javascripts %}
+    {{ parent() }}
+    <script>
+        // Currency Modal logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const currencyBtn = document.getElementById('currencyBtn');
+            const currencyModal = document.getElementById('currencyModal');
+            const closeCurrencyModal = document.getElementById('closeCurrencyModal');
+            const fromCurrency = document.getElementById('fromCurrency');
+            const toCurrencyList = document.getElementById('toCurrencyList');
+            const currencyForm = document.getElementById('currencyConvertForm');
+            const resultsDiv = document.getElementById('conversionResults');
 
-    {# Original Content #}
-    {# Removed outer admin-content-wrapper, now handled by base #}
-    <div class="example-wrapper">
-        <h1>Admin Dashboard ✅</h1>
-        Welcome, Admin {{ app.user.userIdentifier }}!<br>
-        This is the admin area.
+            let currencyData = null;
+
+            function resetModal() {
+                if (currencyForm) currencyForm.reset();
+                if (resultsDiv) resultsDiv.innerHTML = '';
+                if (toCurrencyList) {
+                    // Uncheck all checkboxes
+                    const checks = toCurrencyList.querySelectorAll('input[type=checkbox]');
+                    checks.forEach(c => c.checked = false);
+                }
+            }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fromCurrency = document.getElementById('fromCurrency');
+    const toCurrencyList = document.getElementById('toCurrencyList');
+    const convertBtn = document.getElementById('convertBtn');
+    const amountInput = document.getElementById('amountInput');
+    const resultArea = document.getElementById('resultArea');
+
+    if (!fromCurrency || !toCurrencyList || !convertBtn || !amountInput || !resultArea) {
+        console.error('[Currency Modal] One or more modal elements are missing:', {
+            fromCurrency, toCurrencyList, convertBtn, amountInput, resultArea
+        });
+        return;
+    }
+
+    function populateCurrencies(data) {
+                console.log('[Currency Modal] Populating currencies with data:', data);
+                fromCurrency.innerHTML = '';
+                toCurrencyList.innerHTML = '';
+                (data.currencies || []).forEach(cur => {
+                    fromCurrency.innerHTML += `<option value="${cur}">${cur}</option>`;
+                });
+                (data.currencies || []).forEach(cur => {
+                    const id = `to_${cur}`;
+                    toCurrencyList.innerHTML += `<label for="${id}" style="margin-right:10px;"><input type="checkbox" id="${id}" name="to[]" value="${cur}"> ${cur}</label>`;
+                });
+            }
+
+            // Fetch currencies when modal is opened
+            function fetchCurrenciesForModal() {
+                console.log('[Currency Modal] Fetching currencies from /admin/currency-list...');
+                fetch('/admin/currency-list')
+                    .then(res => {
+                        console.log('[Currency Modal] /admin/currency-list response:', res);
+                        return res.json();
+                    })
+                    .then(data => {
+                        console.log('[Currency Modal] /admin/currency-list JSON:', data);
+                        populateCurrencies(data);
+                    })
+                    .catch(err => {
+                        console.error('[Currency Modal] Error fetching /admin/currency-list:', err);
+                        fromCurrency.innerHTML = '<option>Error</option>';
+                        toCurrencyList.innerHTML = '<span style="color:red;">Error loading currencies</span>';
+                    });
+            }
+
+            // Ensure only checked 'to' currencies are sent on convert
+            convertBtn.onclick = function() {
+                const amount = parseFloat(amountInput.value);
+                const from = fromCurrency.value;
+                const to = Array.from(document.querySelectorAll('#toCurrencyList input[type=checkbox]:checked')).map(cb => cb.value);
+                console.log('[Currency Modal] Convert clicked. Sending:', { amount, from, to });
+                if (!amount || !from || to.length === 0) {
+                    resultArea.innerHTML = '<span style="color:red;">Please enter amount, select from, and at least one to currency.</span>';
+                    return;
+                }
+                resultArea.innerHTML = 'Converting...';
+                fetch('/admin/currency-convert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount, from, to })
+                })
+                .then(res => {
+                    console.log('[Currency Modal] /admin/currency-convert response:', res);
+                    return res.json();
+                })
+                .then(data => {
+                    console.log('[Currency Modal] /admin/currency-convert JSON:', data);
+                    if (data.results) {
+                        let html = '<ul>';
+                        Object.entries(data.results).forEach(([cur, val]) => {
+                            html += `<li><b>${cur}</b>: ${val}</li>`;
+                        });
+                        html += '</ul>';
+                        resultArea.innerHTML = html;
+                    } else {
+                        resultArea.innerHTML = '<span style="color:red;">Conversion error.</span>';
+                    }
+                })
+                .catch((err) => {
+                    console.error('[Currency Modal] Error in /admin/currency-convert:', err);
+                    resultArea.innerHTML = '<span style="color:red;">Server error.</span>';
+                });
+            }
+
+            // Ensure only checked 'to' currencies are sent on convert
+            convertBtn.onclick = function() {
+                const amount = parseFloat(amountInput.value);
+                const from = fromCurrency.value;
+                const to = Array.from(document.querySelectorAll('#toCurrencyList input[type=checkbox]:checked')).map(cb => cb.value);
+                if (!amount || !from || to.length === 0) {
+                    resultArea.innerHTML = '<span style="color:red;">Please enter amount, select from, and at least one to currency.</span>';
+                    return;
+                }
+                resultArea.innerHTML = 'Converting...';
+                fetch('/admin/currency-convert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount, from, to })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.results) {
+                        let html = '<ul>';
+                        Object.entries(data.results).forEach(([cur, val]) => {
+                            html += `<li><b>${cur}</b>: ${val}</li>`;
+                        });
+                        html += '</ul>';
+                        resultArea.innerHTML = html;
+                    } else {
+                        resultArea.innerHTML = '<span style="color:red;">Conversion error.</span>';
+                    }
+                })
+                .catch(() => {
+                    resultArea.innerHTML = '<span style="color:red;">Server error.</span>';
+                });
+            }
+
+            async function fetchCurrencies() {
+                try {
+                    // You should replace this with your own backend endpoint for security
+                    const resp = await fetch('/admin/currency-list');
+                    if (!resp.ok) throw new Error('Failed to fetch currencies');
+                    currencyData = await resp.json();
+                    populateCurrencies(currencyData);
+                } catch (e) {
+                    fromCurrency.innerHTML = '<option>Error</option>';
+                    toCurrencyList.innerHTML = '<span style="color:red">Error loading currencies</span>';
+                }
+            }
+
+            if (currencyBtn && currencyModal && closeCurrencyModal) {
+                currencyBtn.addEventListener('click', async function() {
+                    currencyModal.classList.add('active');
+                    resetModal();
+                    await fetchCurrencies();
+                });
+                closeCurrencyModal.addEventListener('click', function() {
+                    currencyModal.classList.remove('active');
+                });
+                currencyModal.addEventListener('click', function(e) {
+                    if (e.target === currencyModal) {
+                        currencyModal.classList.remove('active');
+                    }
+                });
+            }
+
+            // Handle conversion
+            if (currencyForm) {
+                currencyForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    resultsDiv.innerHTML = '<span>Converting...</span>';
+                    const amount = document.getElementById('amountInput').value;
+                    const from = fromCurrency.value;
+                    const to = Array.from(toCurrencyList.querySelectorAll('input[type=checkbox]:checked')).map(c => c.value);
+                    if (!amount || !from || !to.length) {
+                        resultsDiv.innerHTML = '<span style="color:red">Please fill all fields and select at least one target currency.</span>';
+                        return;
+                    }
+                    try {
+                        // Replace with your backend endpoint
+                        const resp = await fetch('/admin/currency-convert', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ amount, from, to })
+                        });
+                        if (!resp.ok) throw new Error('Conversion failed');
+                        const data = await resp.json();
+                        // Show results
+                        let html = '<strong>Results:</strong><ul>';
+                        Object.entries(data.results).forEach(([cur, val]) => {
+                            html += `<li>1 ${from} = ${currencyData.results[cur]} ${cur} <br> ${amount} ${from} = <b>${val}</b> ${cur}</li>`;
+                        });
+                        html += '</ul>';
+                        resultsDiv.innerHTML = html;
+                    } catch (err) {
+                        resultsDiv.innerHTML = '<span style="color:red">Error during conversion.</span>';
+                    }
+                });
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: '{{ path('admin_calendar_events') }}',
+                eventClick: function(info) {
+                    if (info.event.url) {
+                        window.location.href = info.event.url;
+                        return false;
+                    }
+                }
+            });
+            calendar.render();
+
+            // Initialize tooltips
+            $('[data-toggle="tooltip"]').tooltip();
+
+            // Handle new flight button
+            $('#newFlightBtn').click(function() {
+                $.get("{{ path('admin_vol_new_modal') }}", function(data) {
+                    $('#modalContainer').html(data).modal('show');
+                });
+            });
+
+
+        });
+    </script>
+{% endblock %}
+
+{% block admin_content %}
+    <div class="admin-content-wrapper">
+        <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+            <div>
+                <button id="newFlightBtn" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> New Flight
+                </button>
+                <button id="currencyBtn" class="btn btn-secondary ml-2">Currency</button>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <h3>{{ stats.totalFlights }}</h3>
+                <p>Total Flights</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ stats.upcomingFlights }}</h3>
+                <p>Upcoming Flights</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ stats.todayFlights }}</h3>
+                <p>Today's Flights</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ stats.totalRevenue }}€</h3>
+                <p>Total Revenue</p>
+            </div>
+        </div>
+
+        <!-- Calendar -->
+        <div id='calendar'></div>
     </div>
+
+
+        <!-- Currency Modal -->
+        <div id="currencyModal" class="custom-modal-overlay">
+            <div class="custom-modal-container currency-modal-pro">
+                <div class="custom-modal-header">
+                    <span>Currency Converter</span>
+                    <button type="button" class="custom-modal-close" id="closeCurrencyModal">&times;</button>
+                </div>
+                <form id="currencyConvertForm" class="custom-modal-body">
+                    <div class="form-group">
+                        <label for="amountInput">Amount</label>
+                        <input type="number" min="0" step="any" id="amountInput" name="amount" class="form-control" required placeholder="Enter amount">
+                    </div>
+                    <div class="form-group">
+                        <label for="fromCurrency">From Currency</label>
+                        <select id="fromCurrency" name="from" class="form-control" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Convert To</label>
+                        <div id="toCurrencyList" class="checkbox-list"></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Convert</button>
+                    <div id="conversionResults" class="mt-3"></div>
+                </form>
+            </div>
+        </div>
+    </div> {# close .admin-content-wrapper #}
 {% endblock %}
